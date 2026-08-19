@@ -1,279 +1,205 @@
-# meridian-supply-chain-operations
+# Meridian — AI-Powered Demand Planning for Supply Chain Operations
+
+An intelligent demand-planning application that analyzes historical sales and
+inventory data to forecast future demand, detect planning exceptions, and
+generate AI-written, business-readable recommendations for supply chain
+teams.
+
+> This repository started from a Streamlit + CSV + Pandas concept brief (kept
+> below in [Original Concept](#original-concept)). It was built out as a
+> production-shaped, multi-user system: **PostgreSQL** for storage and
+> **FastAPI + React/TypeScript** for the API and UI, per the actual build
+> request. See [`docs/adr/0001-...`](docs/adr/0001-postgres-and-react-over-csv-and-streamlit.md)
+> for the reasoning.
+
+## What's in this repository
+
+| Path | What |
+|---|---|
+| [`backend/`](backend) | FastAPI service: forecasting engine, exception detection, AI narratives, REST API, Postgres via SQLAlchemy/Alembic |
+| [`frontend/`](frontend) | React + TypeScript (Vite) single-page app |
+| [`e2e/`](e2e) | Playwright end-to-end tests against the full running stack |
+| [`docs/`](docs) | Architecture, ERD, API reference, design notes, ADRs, testing guide |
+| [`data/samples/`](data/samples) | Example CSVs for the sales-history upload flow |
+| [`docker-compose.yml`](docker-compose.yml) | One-command local stack: Postgres, backend, frontend (+ optional Ollama) |
+
+## Quick start
+
+**Prerequisites:** Docker Desktop (or compatible). Node.js and Python are
+only needed if you want to run things outside containers.
+
+```bash
+git clone <this-repo>
+cd demand-planning
+docker compose up -d db
+```
+
+Wait for Postgres to report healthy, then run migrations and seed demo data:
+
+```bash
+docker compose run --rm backend alembic upgrade head
+docker compose run --rm backend python -m app.seed.cli
+```
+
+Bring up the full stack:
+
+```bash
+docker compose up -d
+```
+
+- API: <http://localhost:8000/api/docs> (interactive Swagger UI)
+- App: <http://localhost:5173>
+- Health check: <http://localhost:8000/api/health>
+
+**Optional — AI narratives.** Without any of this, AI insights still work —
+they degrade to a deterministic, template-based summary (see
+[`docs/adr/0003-...`](docs/adr/0003-ai-fallback-and-containerized-frontend.md)).
+Two LLM providers are supported, pick one:
+
+*Local (Ollama, no API key needed):*
+```bash
+docker compose --profile ai up -d ollama
+docker exec meridian-ollama ollama pull llama3.1
+```
+
+*Hosted (Groq — faster, no local model download):* create `backend/.env`
+from `backend/.env.example`, set `AI_PROVIDER=groq` and `GROQ_API_KEY=<your
+key from https://console.groq.com/keys>`, then restart the backend:
+```bash
+cp backend/.env.example backend/.env   # edit AI_PROVIDER and GROQ_API_KEY in this file
+docker compose up -d --force-recreate backend
+```
+`GROQ_API_KEY` can also be set as a host environment variable instead of
+`.env` — `docker-compose.yml` passes it through either way. Never commit a
+real key; `.env` is gitignored.
+
+### Running without Docker
+
+```bash
+# Backend
+cd backend
+python -m venv .venv && .venv/Scripts/activate  # or source .venv/bin/activate on macOS/Linux
+pip install -r requirements-dev.txt
+alembic upgrade head
+python -m app.seed.cli
+uvicorn app.main:app --reload
+
+# Frontend (separate terminal, requires Node 20+)
+cd frontend
+npm install
+npm run dev
+```
+
+## Testing
+
+```bash
+# Backend: 134 tests (unit + integration), JUnit XML + coverage
+cd backend && pytest tests -q
+
+# Frontend: unit/component tests, JUnit XML + coverage
+cd frontend && npm test
+
+# End-to-end: Playwright against the full running stack
+cd e2e && npm install && npx playwright install --with-deps chromium && npm test
+```
 
-# AI-Powered Demand Planning for Supply Chain Operations
+Full details, markers, and what each layer covers: [`docs/TESTING.md`](docs/TESTING.md).
 
-## Overview
+## Documentation
 
-AI-Powered Demand Planning for Supply Chain Operations is an intelligent solution designed to help supply chain teams improve demand forecasting and planning through data-driven insights and Artificial Intelligence.
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — system design, forecasting engine, exception rules, AI layer
+- [`docs/ERD.md`](docs/ERD.md) — database schema
+- [`docs/API.md`](docs/API.md) — REST API reference (or `/api/docs` on a running instance)
+- [`docs/DESIGN.md`](docs/DESIGN.md) — UI design notes
+- [`docs/TESTING.md`](docs/TESTING.md) — how to run every test layer
+- [`docs/adr/`](docs/adr) — architecture decision records
 
-The application analyzes historical sales and inventory data to predict future demand, identify demand trends, detect planning exceptions, and provide recommendations that help planners make better inventory and replenishment decisions.
+## Core capabilities
 
+- **Demand forecasting** — 6 algorithms (naive, moving average, linear
+  trend, Holt linear, seasonal naive, Holt-Winters) with automatic
+  backtested model selection and prediction intervals.
+- **Trend analysis** — growing/declining products ranked by recent vs.
+  prior-period demand, by category and portfolio-wide.
+- **Exception detection** — demand spikes/drops, stockout risk, excess
+  inventory, low-confidence forecasts, and volatile new products, each with
+  the metric that triggered it and a specific recommendation.
+- **AI insights** — a pluggable LLM layer (local Llama 3.1 via Ollama, or
+  hosted models via Groq) generates business-readable summaries and
+  recommendations at the portfolio or product level, with an honest,
+  always-available deterministic fallback when no provider is configured.
+- **CSV ingestion** — flexible column-name matching, row-level validation
+  and error reporting, safe re-upload (upsert, not duplicate).
 
+## Worked example (from the original brief)
 
-## Business Challenge
+Given monthly demand of 100, 120, 140, 160 units, the linear-trend model
+(auto-selected by backtest) forecasts **180 units** for the next period —
+reproduced exactly in
+[`backend/tests/unit/test_forecast_engine.py`](backend/tests/unit/test_forecast_engine.py).
 
-Demand planning is a critical supply chain activity that directly impacts inventory levels, customer satisfaction, and operational efficiency.
+---
 
-Many organizations rely on manual analysis and spreadsheets to:
+## Original Concept
 
-- Review historical sales data
-- Forecast future demand
-- Identify changing demand patterns
-- Monitor inventory availability
-- Detect planning risks
-- Make replenishment decisions
+<details>
+<summary>The initial project brief this system was built from (click to expand)</summary>
 
-These activities are often time-consuming, reactive, and prone to human error.
+### Overview
 
+AI-Powered Demand Planning for Supply Chain Operations is an intelligent
+solution designed to help supply chain teams improve demand forecasting and
+planning through data-driven insights and Artificial Intelligence. The
+application analyzes historical sales and inventory data to predict future
+demand, identify demand trends, detect planning exceptions, and provide
+recommendations that help planners make better inventory and replenishment
+decisions.
 
+### Business Challenge
 
-## Solution
+Demand planning is a critical supply chain activity that directly impacts
+inventory levels, customer satisfaction, and operational efficiency. Many
+organizations rely on manual analysis and spreadsheets to review historical
+sales data, forecast future demand, identify changing demand patterns,
+monitor inventory availability, detect planning risks, and make
+replenishment decisions — activities that are often time-consuming,
+reactive, and prone to human error.
 
-The AI-Powered Demand Planning solution helps planners make smarter and faster decisions by using AI to analyze demand patterns and generate actionable insights.
+### Target Users
 
-### Demand Forecasting
+Demand Planners · Supply Chain Analysts · Inventory Managers · Supply Chain
+Managers · Operations Teams
 
-The solution analyzes historical sales data to:
+### Example Use Cases
 
-- Predict future demand
-- Identify trends and seasonality
-- Forecast product-level demand
-- Support inventory planning decisions
+**Forecast Next Month Demand** — Input: Jan 100, Feb 120, Mar 140, Apr 160
+units sold → AI Forecast: 180 units for May → Recommendation: increase
+replenishment quantities to support rising demand.
 
-### Demand Trend Analysis
+**Demand Spike Detection** — Product A demand increased 25% vs. the
+previous month → Recommendation: review inventory levels and ensure
+replenishment plans are aligned with forecasted demand.
 
-The solution helps planners understand:
+**Inventory Risk Alert** — Current inventory levels may not support
+projected demand over the next planning period → Recommendation: review
+inventory strategy and replenishment schedule.
 
-- Products with increasing demand
-- Products with declining demand
-- Seasonal demand fluctuations
-- Emerging demand patterns
+### Original Technology Stack (as briefed)
 
-### Planning Exception Detection
+Frontend: Streamlit · Data Processing: Python + Pandas · Data Storage: CSV
+Files · AI: Ollama (Local LLM) + Llama 3.1 · Visualization: Streamlit
+Charts + Plotly
 
-The solution automatically identifies potential planning risks such as:
+*(Superseded in this implementation by PostgreSQL + FastAPI + React, per the
+actual build request — see the [Architecture doc](docs/ARCHITECTURE.md) and
+[ADR 0001](docs/adr/0001-postgres-and-react-over-csv-and-streamlit.md). The
+AI layer, Ollama + Llama 3.1, was kept as specified.)*
 
-- Unexpected demand spikes
-- Sudden demand drops
-- Products at risk of stock shortages
-- Potential excess inventory situations
+### Elevator Pitch
 
-### AI Recommendations
+AI-Powered Demand Planning for Supply Chain Operations helps demand
+planners forecast future demand, identify planning exceptions, analyze
+demand trends, and generate actionable recommendations, enabling more
+accurate planning and smarter inventory decisions.
 
-The solution generates recommendations to help planners:
-
-- Improve forecasting accuracy
-- Optimize inventory levels
-- Reduce stockout risks
-- Improve replenishment planning
-
-
-
-## Key Features
-
-### Demand Forecast Dashboard
-
-Provides visibility into:
-
-- Historical demand
-- Forecasted demand
-- Demand growth trends
-- Forecast recommendations
-
-### Sales Data Analysis
-
-Analyze uploaded sales data to:
-
-- Identify patterns
-- Detect trends
-- Compare product performance
-
-### Exception Monitoring
-
-Receive alerts for:
-
-- Demand spikes
-- Demand declines
-- Inventory risks
-- Forecast anomalies
-
-### AI Insights
-
-Generate business-friendly summaries and recommendations from demand planning data.
-
-
-
-## Example Use Cases
-
-### Forecast Next Month Demand
-
-**Input**
-
-| Month | Units Sold |
-|||
-| January | 100 |
-| February | 120 |
-| March | 140 |
-| April | 160 |
-
-**AI Forecast**
-
-Forecasted Demand for May: **180 Units**
-
-Recommendation:
-
-Increase replenishment quantities to support rising demand.
-
-
-
-### Demand Spike Detection
-
-**AI Insight**
-
-Product A demand increased by 25% compared to the previous month.
-
-Recommendation:
-
-Review inventory levels and ensure replenishment plans are aligned with forecasted demand.
-
-
-
-### Inventory Risk Alert
-
-**AI Insight**
-
-Current inventory levels may not support projected demand over the next planning period.
-
-Recommendation:
-
-Review inventory strategy and replenishment schedule.
-
-
-
-## Business Benefits
-
-- Improve demand forecasting accuracy
-- Reduce manual forecasting effort
-- Detect planning risks earlier
-- Support proactive inventory decisions
-- Improve product availability
-- Reduce stockout events
-- Improve operational efficiency
-
-
-
-## Target Users
-
-- Demand Planners
-- Supply Chain Analysts
-- Inventory Managers
-- Supply Chain Managers
-- Operations Teams
-
-
-
-## Technology Stack
-
-### Frontend
-
-- Streamlit
-
-### Data Processing
-
-- Python
-- Pandas
-
-### Data Storage
-
-- CSV Files
-
-### AI
-
-- Ollama (Local LLM)
-- Llama 3.1
-
-### Visualization
-
-- Streamlit Charts
-- Plotly
-
-### Source Control
-
-- GitHub
-
-
-
-## Project Architecture
-
-text
-Sales Data (CSV)
-       |
-       v
-Python + Pandas
-       |
-       v
-Demand Forecast Engine
-       |
-       v
-AI Analysis
-(Ollama + Llama 3.1)
-       |
-       v
-Insights & Recommendations
-       |
-       v
-Streamlit Dashboard
-
-
-
-
-## Future Enhancements
-
-- Advanced forecasting models
-- Multi-product demand forecasting
-- Seasonal demand prediction
-- Automated replenishment recommendations
-- Inventory optimization
-- Conversational AI assistant for planners
-- Real-time demand monitoring
-
-
-
-## Getting Started
-
-### Prerequisites
-
-- Python 3.11+
-- Git
-- Ollama
-- Llama 3.1
-
-### Install Dependencies
-
-bash
-pip install streamlit pandas plotly
-
-
-### Run Application
-
-bash
-streamlit run app.py
-
-
-### Open Browser
-
-text
-http://localhost:8501
-
-
-
-
-## Project Goal
-
-The goal of this project is to demonstrate how Artificial Intelligence can improve demand planning by forecasting future demand, identifying planning risks, and providing AI-generated recommendations that help supply chain teams make better business decisions.
-
-
-
-## Elevator Pitch
-
-AI-Powered Demand Planning for Supply Chain Operations helps demand planners forecast future demand, identify planning exceptions, analyze demand trends, and generate actionable recommendations, enabling more accurate planning and smarter inventory decisions.
+</details>
