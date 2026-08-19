@@ -1,0 +1,10 @@
+# Root-level .env is read by docker-compose for variable substitution
+# (${GROQ_API_KEY}, etc.) — it holds real secrets locally and must never be
+# committed. backend/.env and frontend/.env are covered by their own
+# per-package .gitignore files.
+.env
+.env.local
+
+# OS / editor cruft that can end up at the repo root
+.DS_Store
+Thumbs.db

@@ -1,0 +1,29 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "C4", "SIM"]
+# E501: line length is handled by the formatter, not worth failing CI over.
+# B008: `Depends(...)` / `Query(...)` in argument defaults is the standard,
+# documented FastAPI dependency-injection idiom, not the "avoid mutable
+# default" bug this rule normally catches.
+ignore = ["E501", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+# pytest.raises(Exception) is intentional here: these tests assert only that
+# committing a constraint violation to Postgres raises (psycopg wraps the
+# underlying error in more than one exception type depending on driver
+# version), not which specific exception class is used.
+"tests/integration/test_postgres_specific.py" = ["B017"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.mypy]
+python_version = "3.11"
+plugins = []
+ignore_missing_imports = true
+disallow_untyped_defs = false
+warn_unused_ignores = true
+exclude = ["alembic/versions"]

@@ -1,0 +1,96 @@
+name: meridian-demand-planning
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: meridian-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: meridian
+      POSTGRES_PASSWORD: meridian
+      POSTGRES_DB: meridian_demand
+    ports:
+      - "5432:5432"
+    volumes:
+      - meridian_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meridian -d meridian_demand"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Optional local LLM used for AI narratives. The API works fine without it —
+  # it falls back to deterministic template-based insights automatically.
+  ollama:
+    image: ollama/ollama:latest
+    container_name: meridian-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - meridian_ollama:/root/.ollama
+    profiles: ["ai"]
+
+  backend:
+    build:
+      context: ./backend
+    container_name: meridian-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://meridian:meridian@db:5432/meridian_demand
+      ENVIRONMENT: local
+      CORS_ORIGINS: http://localhost:5173,http://localhost:3000
+      AI_ENABLED: "true"
+      # "ollama" (default, needs the optional ollama service below) or "groq"
+      # (needs GROQ_API_KEY set on the host — see backend/.env.example).
+      AI_PROVIDER: ${AI_PROVIDER:-ollama}
+      OLLAMA_BASE_URL: http://ollama:11434
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-120b}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: meridian-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000/api/v1
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev -- --host 0.0.0.0 --port 5173
+
+  # Runs the Playwright E2E suite against the other services on the compose
+  # network, with no Node/browser install needed on the host:
+  #   docker compose --profile e2e run --rm e2e
+  e2e:
+    build:
+      context: ./e2e
+    container_name: meridian-e2e
+    environment:
+      E2E_BASE_URL: http://frontend:5173
+      E2E_SKIP_SEED: "1" # seed explicitly first: docker compose run --rm backend python -m app.seed.cli
+    depends_on:
+      - backend
+      - frontend
+    volumes:
+      - ./e2e/reports:/e2e/reports
+    profiles: ["e2e"]
+
+volumes:
+  meridian_pgdata:
+  meridian_ollama:
