@@ -1,0 +1,22 @@
+name: meridian-demand-planning
+
+services:
+  backend:
+    build:
+      context: ./backend
+    environment:
+      MERIDIAN_ARTIFACT_DIRECTORY: /data/generated
+      MERIDIAN_CORS_ORIGINS: '["http://localhost:5173"]'
+      MERIDIAN_ENVIRONMENT: development
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    depends_on:
+      - backend
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+    ports:
+      - "5173:5173"

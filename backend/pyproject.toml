@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools==82.0.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "meridian-demand-planning-backend"
+version = "0.1.0"
+description = "FastAPI backend foundation for Meridian Demand Planning"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi==0.141.1",
+    "pydantic-settings==2.15.0",
+    "uvicorn[standard]==0.52.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "httpx2==2.12.0",
+    "mypy==2.3.1",
+    "pytest==9.1.1",
+    "ruff==0.16.3",
+]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-config --strict-markers"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["app", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unreachable = true
+pretty = true
+files = ["app", "tests"]
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_decorators = false

@@ -3,10 +3,10 @@
 A professional, LLM-free demand-planning application for multi-store supply-chain operations.
 
 > [!IMPORTANT]
-> **Project status: architecture and specification only.** Application code, generated data,
-> containers, tests, and runnable commands do not exist yet. This README defines the approved MVP
-> contract for implementation. Sections labeled **Planned command contract** are intentionally not
-> runnable today and must be replaced with verified commands as implementation proceeds.
+> **Project status: Step 1 foundation.** The typed FastAPI backend, React/Vite application shell,
+> automated foundation tests, and minimal local Docker workflow now exist. Synthetic reference data,
+> DuckDB/Parquet adapters, forecasting, and planner functionality are not implemented. This README
+> remains the approved MVP contract; sections explicitly labeled **planned** are not runnable today.
 
 ## Table of contents
 
@@ -45,44 +45,39 @@ A professional, LLM-free demand-planning application for multi-store supply-chai
 
 ## Quick start
 
-There is no runnable application yet. The repository currently contains this specification only.
-
-When implementation is complete, the supported beginner workflow must be:
+The Step 1 application foundation is runnable. It shows the professional navigation shell and honest
+empty states; it does not yet show stores, SKUs, demand, forecasts, or planning results.
 
 1. Install Git and Docker Desktop.
 2. Clone the repository.
-3. Generate or acquire the versioned reference data artifacts.
-4. Start the frontend and backend with Docker Compose.
-5. Open the frontend in a browser.
-6. Select a store and SKU in Demand Explorer.
-7. Optionally open the FastAPI documentation.
-
-### Planned command contract
-
-> [!WARNING]
-> The following commands describe the intended developer experience. They are **not available yet**
-> because the referenced scripts and Compose configuration have not been implemented. Before this
-> project is marked runnable, each command must exist and be exercised in CI.
+3. Start the foundation from the repository root:
 
 ```bash
-# Generate the full reference data artifacts
-python scripts/generate_data.py --config config/data/reference.yaml
-
-# Start the application
 docker compose up --build
+```
 
-# Stop the application
+4. Open the frontend at <http://localhost:5173>.
+5. Open the FastAPI documentation at <http://localhost:8000/api/docs>.
+6. Stop the services when finished:
+
+```bash
 docker compose down
 ```
 
-Frontend, backend, API-documentation URLs, and port numbers remain **TBD until implementation**.
-This README must not claim specific ports until they exist in committed configuration.
+`GET http://localhost:8000/api/health` returns `200`. `GET /api/ready` intentionally returns `503`
+during Step 1 because the reference artifacts and their reader do not exist yet.
+
+### Planned data command—not implemented
+
+```bash
+python scripts/generate_data.py --config config/data/reference.yaml
+```
 
 ## How I will run Meridian locally
 
-This section explains the planned local experience without requiring knowledge of Meridian's internal
-architecture. The application does not exist yet, so this is an easy-to-follow description of how it
-will work after implementation—not a set of runnable instructions.
+This section explains the local experience without requiring knowledge of Meridian's internal
+architecture. The Step 1 shell and operational API run today; planning data and workflows arrive in
+later implementation steps.
 
 ### What I will need
 
@@ -90,11 +85,11 @@ will work after implementation—not a set of runnable instructions.
 |---|---|
 | Git | To download the repository and receive future updates. |
 | Docker Desktop | To run the complete application using the recommended beginner workflow. |
-| Node.js and npm | Needed only when running or developing the frontend directly outside Docker. |
-| Python | Needed only when running or developing the backend or data-generation tools directly outside Docker. |
+| Node.js 22.22.2 and npm 10.9.7 | Needed only when running or developing the frontend directly outside Docker. |
+| Python 3.12.2 | Needed only when running or developing the backend or future data-generation tools directly outside Docker. |
 
-The exact supported Node.js and Python versions are **TBD until implementation**. Docker Desktop is
-the intended way to avoid managing those development environments separately for normal local use.
+Docker Desktop is the intended way to avoid managing those development environments separately for
+normal local use. Runtime versions are pinned in `.nvmrc`, `.python-version`, and the Dockerfiles.
 
 ### What each part does
 
@@ -102,9 +97,9 @@ the intended way to avoid managing those development environments separately for
 filters, charts, tables, and planning workflows that the Demand Planner uses. It runs in the browser
 and requests planning information from the FastAPI backend over HTTP using JSON.
 
-**Backend:** The backend will be built with FastAPI. It validates requests, coordinates forecasting
-and planning logic, and returns the data needed by the frontend. It reads the generated Parquet
-reference artifacts by querying them through DuckDB.
+**Backend:** The backend is built with FastAPI. Step 1 provides health, readiness, OpenAPI, typed
+configuration, and domain boundaries. Later services will coordinate forecasting and planning logic
+and read generated Parquet reference artifacts through DuckDB.
 
 **Data:** Meridian will use deterministic synthetic reference data stored as Parquet artifacts. These
 artifacts contain the stores, products, historical demand, inventory, forecasts, signals, risks, and
@@ -129,39 +124,39 @@ Parquet reference data
 
 #### A. Recommended beginner path
 
-Docker Compose will start the application and connect its required parts. This will be the preferred
-way to run Meridian locally without setting up the frontend and backend toolchains independently.
+Docker Compose starts the current frontend and backend foundation and connects their local
+configuration. From the repository root, run:
+
+```bash
+docker compose up --build
+```
 
 #### B. Developer path
 
-For direct development, the frontend and backend will run separately in two terminals. This will make
-it possible to work on either part with its normal development tools while the browser communicates
-with the locally running backend.
-
-The exact commands, ports, URLs, environment variables, Node.js version, and Python version are
-intentionally **planned/TBD**. They will be documented only after implementation creates the relevant
-project files and the complete workflow has been verified. Nothing in this section is runnable today.
+For direct development, run the backend and frontend separately in two terminals. The verified setup
+commands are documented in [Local development and usage](#local-development-and-usage). Environment
+settings are copied from the committed `.env.example` files; no secrets are required for Step 1.
 
 ### What I should see when it works
 
-- A browser can open the Meridian frontend.
-- The overview page loads successfully.
-- One of the five stores can be selected.
-- A product can be found using SKU search.
-- Demand Explorer displays historical demand and the reference forecast.
-- The FastAPI health and readiness endpoints respond successfully.
+- A browser opens the Meridian frontend at <http://localhost:5173>.
+- The Overview, Demand Explorer, Planning Exceptions, and Forecast Runs routes load.
+- Each planning route shows a clear empty or coming-soon state rather than fake business data.
+- FastAPI health and documentation respond successfully.
+- Readiness reports `not_ready` until reference data exists.
+- Store selection, SKU search, historical demand, and reference forecasts remain planned.
 
 ### When implementation starts
 
-- [ ] Create the backend skeleton.
-- [ ] Create the frontend skeleton.
+- [x] Create the backend skeleton.
+- [x] Create the frontend skeleton.
 - [ ] Create the data-generation pipeline.
 - [ ] Generate a small test dataset.
 - [ ] Connect the backend to DuckDB and Parquet.
 - [ ] Connect the frontend to the backend.
-- [ ] Add Docker Compose.
-- [ ] Verify the complete local workflow.
-- [ ] Update this README with the **actual verified commands**.
+- [x] Add the minimal Step 1 Docker Compose foundation.
+- [ ] Verify the complete data-backed local workflow.
+- [x] Update this README with the **actual verified Step 1 commands**.
 
 ## What Meridian does
 
@@ -717,7 +712,8 @@ mutation are excluded. Frontend types are generated from or contract-tested agai
 
 ## Intended project structure
 
-Only this README exists today. Intended structure:
+The Step 1 foundation establishes the dependency boundaries below. Generator/configuration files shown
+as planned are added with the data pipeline, not fabricated as empty executables in this step:
 
 ```text
 .
@@ -735,8 +731,8 @@ Only this README exists today. Intended structure:
 ├── frontend/
 │   ├── src/{api,components,features,pages,styles,test}/
 │   └── package.json
-├── scripts/{generate_data.py,generate_reference_forecasts.py}
-├── config/data/{reference.yaml,test.yaml}
+├── scripts/                         # planned generator entry points
+├── config/data/                     # planned reference/test profiles
 ├── data/{schemas,samples,generated}/
 ├── e2e/
 ├── docs/
@@ -748,37 +744,45 @@ Names may be refined, but dependency boundaries must remain.
 
 ## Local development and usage
 
-The app cannot currently be started because implementation files do not exist. The required eventual
-flow is clone → configure → generate/acquire artifacts → start backend/frontend → wait for readiness →
-open Demand Explorer.
+The Step 1 shell can be started now. The complete data-backed flow remains clone → configure →
+generate/acquire artifacts → start backend/frontend → wait for readiness → open Demand Explorer.
 
 ### Endpoint contract
 
 | Endpoint | Current value |
 |---|---|
-| Frontend URL | TBD—not implemented |
-| Backend URL | TBD—not implemented |
-| API base | `/api/v1`; host/port TBD |
-| Swagger | `/api/docs`; host/port TBD |
-| Readiness | `/api/ready`; host/port TBD |
+| Frontend URL | <http://localhost:5173> |
+| Backend URL | <http://localhost:8000> |
+| Future business API base | <http://localhost:8000/api/v1> |
+| Swagger | <http://localhost:8000/api/docs> |
+| Health | <http://localhost:8000/api/health> |
+| Readiness | <http://localhost:8000/api/ready> |
 
-Implementation must provide `.env.example` files without secrets. Use a frontend variable such as
-`VITE_API_BASE_URL`; never require source edits to change the backend URL. Backend configuration covers
-environment, artifact location/version, DuckDB read-only/thread settings, CORS origins, preview limits,
-and logging. Final variable names come from actual committed examples.
+Committed `.env.example` files contain no secrets. `VITE_API_BASE_URL` changes the backend origin
+without source edits. Backend variables currently cover environment, artifact location/version, CORS,
+preview limits, and logging. DuckDB-specific settings arrive with the DuckDB adapter.
 
 ### Direct development contract
 
-Backend and frontend normally run in two terminals. Planned frontend convention, not yet runnable:
+Backend and frontend run in two terminals for direct development. Use Python 3.12.2:
+
+```bash
+cd backend
+python3 -m venv .venv
+.venv/bin/python -m pip install --requirement dev-requirements.lock
+.venv/bin/uvicorn app.main:app --reload --port 8000
+```
+
+Use Node.js 22.22.2 and npm 10.9.7 in the second terminal:
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
-The implementation must select and document the actual lockfile install command. Python environment,
-install, and startup commands are deliberately not invented before project files exist.
+Copy the relevant `.env.example` to `.env` only when overriding the safe defaults. The frontend opens
+on port 5173 and communicates with the backend on port 8000.
 
 ## Data generation and validation
 
@@ -805,10 +809,11 @@ rows, 60 months per series, and valid checksums.
 
 ## Docker
 
-Compose will provide backend, frontend, read-only artifacts, and optional Playwright services. DuckDB
-runs inside the backend, not as a container.
+The current Compose file provides only the backend and frontend foundation. It does not pretend that
+reference data, DuckDB adapters, or Playwright services exist. DuckDB will run inside the backend in a
+later step, not as a separate container.
 
-Planned commands, valid only after Docker files exist:
+Verified commands:
 
 ```bash
 docker compose up --build  # build after dependency/Dockerfile changes and start
@@ -816,8 +821,8 @@ docker compose up          # start existing images
 docker compose down        # stop/remove app containers and network
 ```
 
-Final documentation must list actual services, ports, health checks, mounts, and URLs from committed
-Compose configuration. Artifacts should be read-only.
+The `backend` service publishes port 8000 and the `frontend` service publishes port 5173. Reference
+artifact mounts and data readiness remain planned; future artifact mounts must be read-only.
 
 ## Testing
 
@@ -838,17 +843,21 @@ Required coverage:
 Avoid brittle tests requiring a complex model to win when scores are effectively tied. Critical E2E
 tests run in CI and are not intentionally skipped.
 
-No verified commands exist yet:
-
 | Task | Verified command |
 |---|---|
-| Backend unit/repository/API tests | TBD |
-| Backend lint/type check | TBD |
-| Frontend tests/lint/type check/build | TBD |
+| Backend tests | `cd backend && .venv/bin/pytest` |
+| Backend formatting | `cd backend && .venv/bin/ruff format --check .` |
+| Backend lint | `cd backend && .venv/bin/ruff check .` |
+| Backend type check | `cd backend && .venv/bin/mypy app tests` |
+| Frontend formatting | `cd frontend && npm run format:check` |
+| Frontend tests | `cd frontend && npm run test` |
+| Frontend lint | `cd frontend && npm run lint` |
+| Frontend type check | `cd frontend && npm run typecheck` |
+| Frontend production build | `cd frontend && npm run build` |
 | Playwright E2E | TBD |
 | Test/reference data validation | TBD |
 | Reference forecast generation | TBD |
-| Full local verification | TBD |
+| Step 1 local startup | `docker compose up --build` |
 
 ## CI/CD
 
@@ -1011,6 +1020,6 @@ forecasts, or become required for core availability. Ollama is an optional futur
 - Inventory risk uses simplified monthly forecasts and lead-time overlap.
 - Promotions, price, holidays, assortment history, and causal features are not explicit MVP inputs.
 - Free hosting may sleep or impose restrictive resource limits.
-- Providers, pricing, quotas, versions, ports, URLs, variables, and runnable commands require verification
-  once implementation exists.
+- Hosting providers, pricing, quotas, and later data/forecast commands require verification when those
+  implementation steps exist.
 - PostgreSQL is expected when the product becomes a durable multi-user application.
