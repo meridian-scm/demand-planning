@@ -57,6 +57,8 @@ test.describe("Products", () => {
 
     await expect(page).toHaveURL(/\/products\/\d+$/);
     await expect(page.getByText(skuText)).toBeVisible();
-    await expect(page.getByText("Open Exceptions")).toBeVisible();
+    // The section heading and an empty-state message ("No open exceptions")
+    // both contain this text, so target the heading role specifically.
+    await expect(page.getByRole("heading", { name: "Open Exceptions" })).toBeVisible();
   });
 });

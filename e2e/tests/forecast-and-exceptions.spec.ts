@@ -27,11 +27,27 @@ test.describe("Forecast cycle and exceptions", () => {
     await page.goto("/exceptions");
     await expect(page.locator(".table tbody tr").first()).toBeVisible({ timeout: 15_000 });
 
-    const firstRow = page.locator(".table tbody tr").first();
+    const rows = page.locator(".table tbody tr");
+    const initialCount = await rows.count();
+    const firstRow = rows.first();
     const ackButton = firstRow.getByRole("button", { name: "Ack" });
+
     if (await ackButton.isVisible()) {
+      // Capture an identifying detail before the row moves, so we can find
+      // it again after switching filters.
+      const sku = (await firstRow.locator("td").nth(1).locator("a").innerText()).trim();
       await ackButton.click();
-      await expect(firstRow.getByText("Acknowledged")).toBeVisible({ timeout: 10_000 });
+
+      // The page's default filter is "Open", and acknowledging removes the
+      // exception from that filtered list (via a refetch) rather than
+      // updating a status badge in place — so the row disappears here...
+      await expect(rows).toHaveCount(initialCount - 1, { timeout: 10_000 });
+
+      // ...and reappears under the "Acknowledged" filter.
+      await page.getByRole("button", { name: "Acknowledged" }).click();
+      await expect(page.locator(".table tbody tr", { hasText: sku }).first()).toBeVisible({
+        timeout: 10_000,
+      });
     }
   });
 
