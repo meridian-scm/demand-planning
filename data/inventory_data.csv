@@ -1,0 +1,16 @@
+Product_ID,Product_Name,Category,Warehouse,Current_Stock,Reorder_Point,Lead_Time_Days,Safety_Stock,Unit_Cost,Last_Updated
+P001,Laptop,Electronics,SLC-01,250,100,14,50,850,2026-08-01
+P002,Monitor,Electronics,SLC-01,180,75,10,40,220,2026-08-01
+P003,Keyboard,Accessories,SLC-01,500,200,100,80,25,2026-08-01
+P004,Mouse,Accessories,SLC-01,450,180,7,70,15,2026-08-01
+P005,Printer,Office Equipment,DEN-01,60,30,21,15,300,2026-08-01
+P006,Toner Cartridge,Office Supplies,DEN-01,320,120,14,50,75,2026-08-01
+P007,Desk Chair,Furniture,DEN-01,90,40,30,20,150,2026-08-01
+P008,Standing Desk,Furniture,DEN-01,45,20,35,10,450,2026-08-01
+P009,Tablet,Electronics,SLC-01,140,60,12,30,400,2026-08-01
+P010,Webcam,Accessories,SLC-01,275,100,7,40,45,2026-08-01
+P011,Headset,Accessories,DEN-01,210,80,10,35,65,2026-08-01
+P012,External SSD,Storage,SLC-01,125,50,15,25,120,2026-08-01
+P013,Network Switch,Networking,DEN-01,35,15,20,8,650,2026-08-01
+P014,Router,Networking,DEN-01,50,20,18,10,280,2026-08-01
+P015,USB Cable,Accessories,SLC-01,800,300,5,120,8,2026-08-01
