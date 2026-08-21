@@ -74,6 +74,9 @@ class StoreProduct:
     lead_time_days: int
     safety_stock: int
     reorder_point: int
+    minimum_order_quantity: int = 1
+    order_multiple: int = 1
+    service_level_target: float = 0.95
 
     def __post_init__(self) -> None:
         _require_text(self.store_id, "store_id")
@@ -85,3 +88,9 @@ class StoreProduct:
             raise ValueError("safety_stock must be nonnegative")
         if self.reorder_point < 0:
             raise ValueError("reorder_point must be nonnegative")
+        if self.minimum_order_quantity < 1:
+            raise ValueError("minimum_order_quantity must be positive")
+        if self.order_multiple < 1:
+            raise ValueError("order_multiple must be positive")
+        if not 0 < self.service_level_target < 1:
+            raise ValueError("service_level_target must be between zero and one")

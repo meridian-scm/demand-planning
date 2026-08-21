@@ -1,0 +1,8 @@
+data_directory: data/generated/reference-v1
+output_root: data/generated/benchmarks/reference-forecast-v1
+data_version: reference-v1
+created_at: 2026-08-01T12:00:00Z
+horizon_months: 6
+interval_level: 90
+maximum_series: 250
+parquet_compression: zstd

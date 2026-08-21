@@ -8,8 +8,14 @@ version = "0.1.0"
 description = "FastAPI backend foundation for Meridian Demand Planning"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "duckdb==1.5.5",
     "fastapi==0.141.1",
+    "numpy==2.5.2",
+    "pandas==2.3.3",
     "pydantic-settings==2.15.0",
+    "pyarrow==25.0.1",
+    "pyyaml==6.0.3",
+    "statsforecast==2.1.1",
     "uvicorn[standard]==0.52.3",
 ]
 
@@ -17,8 +23,10 @@ dependencies = [
 dev = [
     "httpx2==2.12.0",
     "mypy==2.3.1",
+    "pandas-stubs==2.3.3.260113",
     "pytest==9.1.1",
     "ruff==0.16.3",
+    "types-pyyaml==6.0.12.20260815",
 ]
 
 [tool.setuptools.packages.find]
@@ -47,3 +55,7 @@ plugins = ["pydantic.mypy"]
 [[tool.mypy.overrides]]
 module = "tests.*"
 disallow_untyped_decorators = false
+
+[[tool.mypy.overrides]]
+module = ["pyarrow", "pyarrow.*"]
+ignore_missing_imports = true

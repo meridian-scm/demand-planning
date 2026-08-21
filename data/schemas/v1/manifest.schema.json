@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meridian.example/schemas/v1/manifest.schema.json",
+  "title": "Meridian generated artifact manifest",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "data_version",
+    "generator_version",
+    "generation_run_id",
+    "profile",
+    "parquet_compression",
+    "configuration_sha256",
+    "random_seed",
+    "generated_at",
+    "period_start",
+    "period_end",
+    "row_counts",
+    "artifacts",
+    "tool_versions"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "data_version": { "type": "string" },
+    "generator_version": { "type": "string" },
+    "generation_run_id": { "type": "string" },
+    "profile": { "enum": ["test", "reference"] },
+    "parquet_compression": { "enum": ["snappy", "zstd"] },
+    "configuration_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "random_seed": { "type": "integer" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "period_start": { "type": "string", "format": "date" },
+    "period_end": { "type": "string", "format": "date" },
+    "row_counts": { "type": "object", "additionalProperties": { "type": "integer" } },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["sha256", "size_bytes", "row_count"],
+        "properties": {
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "size_bytes": { "type": "integer" },
+          "row_count": { "type": "integer" }
+        }
+      }
+    },
+    "tool_versions": { "type": "object", "additionalProperties": { "type": "string" } }
+  },
+  "additionalProperties": false
+}

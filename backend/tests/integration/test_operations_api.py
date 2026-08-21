@@ -31,7 +31,7 @@ def test_readiness_is_honest_without_reference_artifacts(client: TestClient) -> 
 def test_readiness_stays_honest_when_only_a_manifest_exists(
     client: TestClient, artifact_directory: Path
 ) -> None:
-    artifact_directory.mkdir()
+    artifact_directory.mkdir(parents=True)
     (artifact_directory / "manifest.json").write_text("{}", encoding="utf-8")
 
     response = client.get("/api/ready")
@@ -41,7 +41,7 @@ def test_readiness_stays_honest_when_only_a_manifest_exists(
         "status": "not_ready",
         "data_ready": False,
         "checks": {"artifact_reader": False, "reference_manifest": True},
-        "detail": "Reference manifest exists, but the artifact reader is not implemented yet.",
+        "detail": "Reference manifest exists, but required artifacts cannot be queried.",
     }
 
 
@@ -52,3 +52,16 @@ def test_openapi_uses_the_expected_api_paths(client: TestClient) -> None:
     paths = response.json()["paths"]
     assert "/api/health" in paths
     assert "/api/ready" in paths
+    assert "/api/v1/stores" in paths
+    assert "/api/v1/products" in paths
+    assert "/api/v1/demand/series" in paths
+    assert "/api/v1/forecast-previews" in paths
+
+
+def test_readiness_succeeds_for_queryable_reference_artifacts(
+    published_client: TestClient,
+) -> None:
+    response = published_client.get("/api/ready")
+
+    assert response.status_code == 200
+    assert response.json()["data_ready"] is True

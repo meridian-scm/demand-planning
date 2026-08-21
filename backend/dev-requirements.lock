@@ -4,6 +4,8 @@
 #
 #    pip-compile --extra=dev --output-file=dev-requirements.lock --strip-extras pyproject.toml
 #
+adagio==0.2.6
+    # via fugue
 annotated-doc==0.0.5
     # via fastapi
 annotated-types==0.8.0
@@ -17,8 +19,18 @@ ast-serialize==0.8.0
     # via mypy
 click==8.4.2
     # via uvicorn
+cloudpickle==3.1.2
+    # via statsforecast
+coreforecast==0.0.18
+    # via statsforecast
+duckdb==1.5.5
+    # via meridian-demand-planning-backend (pyproject.toml)
 fastapi==0.141.1
     # via meridian-demand-planning-backend (pyproject.toml)
+fsspec==2026.7.0
+    # via triad
+fugue==0.9.7
+    # via statsforecast
 h11==0.16.0
     # via
     #   httpcore2
@@ -41,12 +53,45 @@ mypy==2.3.1
     # via meridian-demand-planning-backend (pyproject.toml)
 mypy-extensions==1.1.0
     # via mypy
+narwhals==2.25.0
+    # via utilsforecast
+numpy==2.5.2
+    # via
+    #   coreforecast
+    #   meridian-demand-planning-backend (pyproject.toml)
+    #   pandas
+    #   pandas-stubs
+    #   patsy
+    #   scipy
+    #   statsforecast
+    #   statsmodels
+    #   triad
+    #   utilsforecast
 packaging==26.3
-    # via pytest
+    # via
+    #   pytest
+    #   statsmodels
+    #   utilsforecast
+pandas==2.3.3
+    # via
+    #   fugue
+    #   meridian-demand-planning-backend (pyproject.toml)
+    #   statsforecast
+    #   statsmodels
+    #   triad
+    #   utilsforecast
+pandas-stubs==2.3.3.260113
+    # via meridian-demand-planning-backend (pyproject.toml)
 pathspec==1.1.1
     # via mypy
+patsy==1.0.2
+    # via statsmodels
 pluggy==1.6.0
     # via pytest
+pyarrow==25.0.1
+    # via
+    #   meridian-demand-planning-backend (pyproject.toml)
+    #   triad
 pydantic==2.13.4
     # via
     #   fastapi
@@ -59,20 +104,50 @@ pygments==2.21.0
     # via pytest
 pytest==9.1.1
     # via meridian-demand-planning-backend (pyproject.toml)
+python-dateutil==2.9.0.post0
+    # via pandas
 python-dotenv==1.2.3
     # via
     #   pydantic-settings
     #   uvicorn
+pytz==2026.3.post1
+    # via pandas
 pyyaml==6.0.3
-    # via uvicorn
+    # via
+    #   meridian-demand-planning-backend (pyproject.toml)
+    #   uvicorn
 ruff==0.16.3
     # via meridian-demand-planning-backend (pyproject.toml)
+scipy==1.18.0
+    # via
+    #   statsforecast
+    #   statsmodels
+six==1.17.0
+    # via
+    #   python-dateutil
+    #   triad
 starlette==1.6.0
     # via fastapi
+statsforecast==2.1.1
+    # via meridian-demand-planning-backend (pyproject.toml)
+statsmodels==0.14.6
+    # via statsforecast
+threadpoolctl==3.6.0
+    # via statsforecast
+tqdm==4.70.0
+    # via statsforecast
+triad==1.0.2
+    # via
+    #   adagio
+    #   fugue
 truststore==0.10.4
     # via
     #   httpcore2
     #   httpx2
+types-pytz==2026.3.1.20260727
+    # via pandas-stubs
+types-pyyaml==6.0.12.20260815
+    # via meridian-demand-planning-backend (pyproject.toml)
 typing-extensions==4.16.0
     # via
     #   anyio
@@ -88,6 +163,10 @@ typing-inspection==0.4.4
     #   fastapi
     #   pydantic
     #   pydantic-settings
+tzdata==2026.3
+    # via pandas
+utilsforecast==0.2.16
+    # via statsforecast
 uvicorn==0.52.3
     # via meridian-demand-planning-backend (pyproject.toml)
 uvloop==0.22.1

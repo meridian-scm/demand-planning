@@ -7,6 +7,8 @@ function navClassName({ isActive }: { isActive: boolean }): string {
 }
 
 export function AppShell() {
+  const artifactDataVersion = import.meta.env.VITE_ARTIFACT_DATA_VERSION?.trim() || 'test-v1';
+
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">
@@ -42,8 +44,8 @@ export function AppShell() {
         <div className="sidebar-note">
           <span className="status-dot" />
           <div>
-            <strong>Foundation mode</strong>
-            <span>Reference data is not loaded</span>
+            <strong>Demo data active</strong>
+            <span>Immutable {artifactDataVersion} artifacts</span>
           </div>
         </div>
       </aside>

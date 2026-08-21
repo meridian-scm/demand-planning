@@ -1,0 +1,74 @@
+{
+  "schema_version": "1.0.0",
+  "artifacts": {
+    "stores.parquet": [
+      { "name": "store_id", "type": "string", "nullable": false },
+      { "name": "store_code", "type": "string", "nullable": false },
+      { "name": "store_name", "type": "string", "nullable": false },
+      { "name": "city", "type": "string", "nullable": false },
+      { "name": "region", "type": "string", "nullable": false },
+      { "name": "country", "type": "string", "nullable": false },
+      { "name": "timezone", "type": "string", "nullable": false },
+      { "name": "created_at", "type": "timestamp_utc", "nullable": false }
+    ],
+    "products.parquet": [
+      { "name": "product_id", "type": "string", "nullable": false },
+      { "name": "sku", "type": "string", "nullable": false },
+      { "name": "product_name", "type": "string", "nullable": false },
+      { "name": "category", "type": "string", "nullable": false },
+      { "name": "subcategory", "type": "string", "nullable": false },
+      { "name": "brand", "type": "string", "nullable": false },
+      { "name": "unit_cost", "type": "decimal_10_2", "nullable": false },
+      { "name": "unit_price", "type": "decimal_10_2", "nullable": false },
+      { "name": "created_at", "type": "timestamp_utc", "nullable": false }
+    ],
+    "store_products.parquet": [
+      { "name": "store_id", "type": "string", "nullable": false },
+      { "name": "product_id", "type": "string", "nullable": false },
+      { "name": "sku", "type": "string", "nullable": false },
+      { "name": "active", "type": "bool", "nullable": false },
+      { "name": "lead_time_days", "type": "int32", "nullable": false },
+      { "name": "safety_stock", "type": "int64", "nullable": false },
+      { "name": "reorder_point", "type": "int64", "nullable": false },
+      { "name": "minimum_order_quantity", "type": "int64", "nullable": false },
+      { "name": "order_multiple", "type": "int64", "nullable": false },
+      { "name": "service_level_target", "type": "float64", "nullable": false },
+      { "name": "created_at", "type": "timestamp_utc", "nullable": false }
+    ],
+    "demand_history.parquet": [
+      { "name": "store_id", "type": "string", "nullable": false },
+      { "name": "product_id", "type": "string", "nullable": false },
+      { "name": "sku", "type": "string", "nullable": false },
+      { "name": "period_start", "type": "date32", "nullable": false },
+      { "name": "demand_units", "type": "int64", "nullable": false },
+      { "name": "created_at", "type": "timestamp_utc", "nullable": false }
+    ],
+    "inventory_snapshots.parquet": [
+      { "name": "store_id", "type": "string", "nullable": false },
+      { "name": "product_id", "type": "string", "nullable": false },
+      { "name": "sku", "type": "string", "nullable": false },
+      { "name": "snapshot_at", "type": "timestamp_utc", "nullable": false },
+      { "name": "on_hand", "type": "int64", "nullable": false },
+      { "name": "allocated", "type": "int64", "nullable": false },
+      { "name": "on_order", "type": "int64", "nullable": false },
+      { "name": "on_order_due_within_lead_time", "type": "int64", "nullable": false },
+      { "name": "next_expected_receipt_at", "type": "timestamp_utc", "nullable": true },
+      { "name": "lead_time_days", "type": "int32", "nullable": false },
+      { "name": "safety_stock", "type": "int64", "nullable": false },
+      { "name": "inventory_scenario", "type": "string", "nullable": false },
+      { "name": "created_at", "type": "timestamp_utc", "nullable": false }
+    ],
+    "synthetic_ground_truth.parquet": [
+      { "name": "store_id", "type": "string", "nullable": false },
+      { "name": "product_id", "type": "string", "nullable": false },
+      { "name": "sku", "type": "string", "nullable": false },
+      { "name": "demand_pattern", "type": "string", "nullable": false },
+      { "name": "lifecycle", "type": "string", "nullable": false },
+      { "name": "seasonality_strength", "type": "float64", "nullable": false },
+      { "name": "volatility_scale", "type": "float64", "nullable": false },
+      { "name": "event_type", "type": "string", "nullable": true },
+      { "name": "event_period_start", "type": "date32", "nullable": true },
+      { "name": "created_at", "type": "timestamp_utc", "nullable": false }
+    ]
+  }
+}
